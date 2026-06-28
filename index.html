@@ -350,8 +350,7 @@ function reproducir(streamId,nombre,cat){
     hlsInstance.on(Hls.Events.ERROR,(ev,data)=>{
       if(data.fatal){
         if(data.details==='manifestParsingError'||data.details==='manifestLoadError'){
-          // El servidor devuelve MPEG-TS, intentar con mpegts.js
-          reproducirMpegTs(streamId);
+          reproducirMpegTs(streamId,url);
         } else {
           mostrarErrPlayer(`Error: ${data.type} / ${data.details}`);
         }
@@ -365,11 +364,11 @@ function reproducir(streamId,nombre,cat){
   }
 }
 
-function reproducirMpegTs(streamId){
+function reproducirMpegTs(streamId,overrideUrl){
   if(mpegtsInstance){mpegtsInstance.destroy();mpegtsInstance=null;}
   if(hlsInstance){hlsInstance.destroy();hlsInstance=null;}
-  const tsRaw=`${SERVER}/live/${encodeURIComponent(SESSION.user)}/${encodeURIComponent(SESSION.pass)}/${streamId}`;
-  const tsUrl=`${PROXY}?t=${encodeURIComponent(tsRaw)}`;
+  const tsRaw=`${SERVER}/live/${encodeURIComponent(SESSION.user)}/${encodeURIComponent(SESSION.pass)}/${streamId}.m3u8`;
+  const tsUrl=overrideUrl||`${PROXY}?t=${encodeURIComponent(tsRaw)}`;
   const video=document.getElementById('video');
   video.style.display='block';
   document.getElementById('player-err').style.display='none';
@@ -378,7 +377,7 @@ function reproducirMpegTs(streamId){
     mpegtsInstance.attachMediaElement(video);
     mpegtsInstance.load();
     mpegtsInstance.play().catch(()=>mostrarErrPlayer('No compatible con este navegador'));
-    mpegtsInstance.on(mpegts.Events.ERROR,()=>mostrarErrPlayer('Error al reproducir stream MPEG-TS'));
+    mpegtsInstance.on(mpegts.Events.ERROR,(et,ed)=>mostrarErrPlayer(`MPEG-TS: ${et} / ${ed&&ed.code?ed.code:JSON.stringify(ed)}`));
   } else {
     mostrarErrPlayer('Formato no compatible con este navegador');
   }
