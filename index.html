@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GOLD TV Player</title>
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.7/dist/hls.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mpegts.js@1.7.3/dist/mpegts.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -184,6 +185,7 @@ let ALL_STREAMS=[];
 let CURRENT_CAT='all';
 let CURRENT_STREAM=null;
 let hlsInstance=null;
+let mpegtsInstance=null;
 
 // ── LOGIN ──
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.getElementById('pg-login').style.display!=='none')login();});
@@ -346,13 +348,39 @@ function reproducir(streamId,nombre,cat){
     hlsInstance.attachMedia(video);
     hlsInstance.on(Hls.Events.MANIFEST_PARSED,()=>video.play().catch(()=>{}));
     hlsInstance.on(Hls.Events.ERROR,(ev,data)=>{
-      if(data.fatal)mostrarErrPlayer(`Error: ${data.type} / ${data.details} (fatal=${data.fatal})`);
+      if(data.fatal){
+        if(data.details==='manifestParsingError'||data.details==='manifestLoadError'){
+          // El servidor devuelve MPEG-TS, intentar con mpegts.js
+          reproducirMpegTs(streamId);
+        } else {
+          mostrarErrPlayer(`Error: ${data.type} / ${data.details}`);
+        }
+      }
     });
   } else if(video.canPlayType('application/vnd.apple.mpegurl')){
     video.src=url;
-    video.play().catch(()=>mostrarErrPlayer());
+    video.play().catch(()=>reproducirMpegTs(streamId));
   } else {
-    mostrarErrPlayer('Tu navegador no soporta reproducción HLS.');
+    reproducirMpegTs(streamId);
+  }
+}
+
+function reproducirMpegTs(streamId){
+  if(mpegtsInstance){mpegtsInstance.destroy();mpegtsInstance=null;}
+  if(hlsInstance){hlsInstance.destroy();hlsInstance=null;}
+  const tsRaw=`${SERVER}/live/${encodeURIComponent(SESSION.user)}/${encodeURIComponent(SESSION.pass)}/${streamId}`;
+  const tsUrl=`${PROXY}?t=${encodeURIComponent(tsRaw)}`;
+  const video=document.getElementById('video');
+  video.style.display='block';
+  document.getElementById('player-err').style.display='none';
+  if(typeof mpegts!=='undefined'&&mpegts.getFeatureList().mseLivePlayback){
+    mpegtsInstance=mpegts.createPlayer({type:'mse',isLive:true,url:tsUrl,cors:true,enableWorker:false});
+    mpegtsInstance.attachMediaElement(video);
+    mpegtsInstance.load();
+    mpegtsInstance.play().catch(()=>mostrarErrPlayer('No compatible con este navegador'));
+    mpegtsInstance.on(mpegts.Events.ERROR,()=>mostrarErrPlayer('Error al reproducir stream MPEG-TS'));
+  } else {
+    mostrarErrPlayer('Formato no compatible con este navegador');
   }
 }
 
@@ -372,6 +400,7 @@ function cerrarPlayer(){
   const video=document.getElementById('video');
   video.pause();video.src='';
   if(hlsInstance){hlsInstance.destroy();hlsInstance=null;}
+  if(mpegtsInstance){mpegtsInstance.destroy();mpegtsInstance=null;}
   CURRENT_STREAM=null;
 }
 
