@@ -176,7 +176,8 @@ video{width:100%;flex:1;background:#000;outline:none}
 </div>
 
 <script>
-const SERVER='https://mundo2.pro';
+const SERVER='http://mundo2.pro:80';
+const PROXY='https://goldtv-proxy.asesor-didactica5.workers.dev';
 let SESSION={user:'',pass:'',info:null};
 let ALL_CATS=[];
 let ALL_STREAMS=[];
@@ -198,8 +199,9 @@ async function login(){
   document.getElementById('cors-notice').style.display='none';
 
   try{
-    const url=`${SERVER}/player_api.php?username=${encodeURIComponent(user)}&password=${encodeURIComponent(pass)}`;
-    const res=await fetch(url,{signal:AbortSignal.timeout(10000)});
+    const apiUrl=`${SERVER}/player_api.php?username=${encodeURIComponent(user)}&password=${encodeURIComponent(pass)}`;
+    const url=`${PROXY}?t=${encodeURIComponent(apiUrl)}`;
+    const res=await fetch(url,{signal:AbortSignal.timeout(15000)});
     const data=await res.json();
 
     if(data.user_info&&(data.user_info.auth==1||data.user_info.auth==='1')){
@@ -242,9 +244,10 @@ function logout(){
 // ── CARGAR CANALES ──
 async function cargarCanales(){
   try{
+    const p=encodeURIComponent,u=SESSION.user,pw=SESSION.pass;
     const [resCats,resStreams]=await Promise.all([
-      fetch(`${SERVER}/player_api.php?username=${encodeURIComponent(SESSION.user)}&password=${encodeURIComponent(SESSION.pass)}&action=get_live_categories`),
-      fetch(`${SERVER}/player_api.php?username=${encodeURIComponent(SESSION.user)}&password=${encodeURIComponent(SESSION.pass)}&action=get_live_streams`)
+      fetch(`${PROXY}?t=${p(SERVER+'/player_api.php?username='+p(u)+'&password='+p(pw)+'&action=get_live_categories')}`),
+      fetch(`${PROXY}?t=${p(SERVER+'/player_api.php?username='+p(u)+'&password='+p(pw)+'&action=get_live_streams')}`)
     ]);
     ALL_CATS=await resCats.json();
     ALL_STREAMS=await resStreams.json();
@@ -331,7 +334,8 @@ function reproducir(streamId,nombre,cat){
   document.getElementById('player-err').style.display='none';
   document.getElementById('video').style.display='block';
 
-  const url=`${SERVER}/live/${encodeURIComponent(SESSION.user)}/${encodeURIComponent(SESSION.pass)}/${streamId}.m3u8`;
+  const streamRaw=`${SERVER}/live/${encodeURIComponent(SESSION.user)}/${encodeURIComponent(SESSION.pass)}/${streamId}.m3u8`;
+  const url=`${PROXY}?t=${encodeURIComponent(streamRaw)}`;
   const video=document.getElementById('video');
 
   if(hlsInstance){hlsInstance.destroy();hlsInstance=null;}
