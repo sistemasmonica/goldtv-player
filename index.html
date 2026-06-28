@@ -177,7 +177,256 @@ video{width:100%;flex:1;background:#000;outline:none}
 </div>
 
 <script>
-const SERVER='http://mundo2.pro:80',PROXY='https://goldtv-proxy.asesor-didactica5.workers.dev';let SESSION={'user':'','pass':'','info':null},ALL_CATS=[],ALL_STREAMS=[],CURRENT_CAT='all',CURRENT_STREAM=null,hlsInstance=null,mpegtsInstance=null;document['addEventListener']('keydown',_0x4e1bd9=>{if(_0x4e1bd9['key']==='Enter'&&document['getElementById']('pg-login')['style']['display']!=='none')login();});async function login(){const _0x1b2191=document['getElementById']('inp-user')['value']['trim'](),_0x1d61b8=document['getElementById']('inp-pass')['value']['trim']();if(!_0x1b2191||!_0x1d61b8){showLoginErr('Ingresa\x20tu\x20usuario\x20y\x20contraseña');return;}const _0x3a7f41=document['getElementById']('btn-login');_0x3a7f41['textContent']='Conectando...',_0x3a7f41['disabled']=!![],document['getElementById']('login-err')['style']['display']='none',document['getElementById']('cors-notice')['style']['display']='none';try{const _0x44c08b=SERVER+'/player_api.php?username='+encodeURIComponent(_0x1b2191)+'&password='+encodeURIComponent(_0x1d61b8),_0x257279=PROXY+'?t='+encodeURIComponent(_0x44c08b),_0x466e16=await fetch(_0x257279,{'signal':AbortSignal['timeout'](0x3a98)}),_0x1805c1=await _0x466e16['json']();_0x1805c1['user_info']&&(_0x1805c1['user_info']['auth']==0x1||_0x1805c1['user_info']['auth']==='1')?(SESSION={'user':_0x1b2191,'pass':_0x1d61b8,'info':_0x1805c1['user_info']},localStorage['setItem']('gtv_s',JSON['stringify']({'user':_0x1b2191,'pass':_0x1d61b8})),mostrarApp(),cargarCanales()):showLoginErr('Usuario\x20o\x20contraseña\x20incorrectos');}catch(_0x2bf346){if(_0x2bf346['name']==='TypeError'&&_0x2bf346['message']['toLowerCase']()['includes']('fetch'))document['getElementById']('cors-notice')['style']['display']='block',showLoginErr('No\x20se\x20pudo\x20conectar\x20—\x20el\x20servidor\x20no\x20permite\x20acceso\x20desde\x20navegador\x20web.');else _0x2bf346['name']==='TimeoutError'?showLoginErr('Tiempo\x20de\x20espera\x20agotado.\x20Verifica\x20tu\x20conexión\x20a\x20internet.'):showLoginErr('Error\x20de\x20conexión:\x20'+_0x2bf346['message']);}_0x3a7f41['textContent']='▶\x20Entrar',_0x3a7f41['disabled']=![];}function showLoginErr(_0x2b9a14){const _0x520b8b=document['getElementById']('login-err');_0x520b8b['textContent']=_0x2b9a14,_0x520b8b['style']['display']='block';}function logout(){localStorage['removeItem']('gtv_s'),SESSION={'user':'','pass':'','info':null},ALL_CATS=[],ALL_STREAMS=[],cerrarPlayer(),document['getElementById']('pg-app')['style']['display']='none',document['getElementById']('pg-login')['style']['display']='flex',document['getElementById']('inp-pass')['value']='';}async function cargarCanales(){try{const _0x5f5776=encodeURIComponent,_0x44c13c=SESSION['user'],_0x53ef69=SESSION['pass'],[_0xc6c0d9,_0x1ccdf7]=await Promise['all']([fetch(PROXY+'?t='+_0x5f5776(SERVER+'/player_api.php?username='+_0x5f5776(_0x44c13c)+'&password='+_0x5f5776(_0x53ef69)+'&action=get_live_categories')),fetch(PROXY+'?t='+_0x5f5776(SERVER+'/player_api.php?username='+_0x5f5776(_0x44c13c)+'&password='+_0x5f5776(_0x53ef69)+'&action=get_live_streams'))]);ALL_CATS=await _0xc6c0d9['json'](),ALL_STREAMS=await _0x1ccdf7['json'](),renderSidebar(),renderChannels('all');}catch(_0x27ef14){document['getElementById']('content')['innerHTML']='<div\x20class=\x22empty\x22>❌\x20No\x20se\x20pudieron\x20cargar\x20los\x20canales.<br><small\x20style=\x22color:#64748b\x22>'+_0x27ef14['message']+'</small></div>';}}function renderSidebar(){const _0x451a02=ALL_STREAMS['length'];let _0x738d9a='<div\x20class=\x22cat-item\x20on\x22\x20onclick=\x22selCat(\x27all\x27,this)\x22>📺\x20Todos\x20los\x20canales\x20<span\x20class=\x22cnt\x22>'+_0x451a02+'</span></div>';ALL_CATS['forEach'](_0x5d3377=>{const _0x45b7a3=ALL_STREAMS['filter'](_0x323a4b=>_0x323a4b['category_id']==_0x5d3377['category_id'])['length'];if(!_0x45b7a3)return;_0x738d9a+='<div\x20class=\x22cat-item\x22\x20onclick=\x22selCat(\x27'+escH(_0x5d3377['category_id'])+'\x27,this)\x22>▸\x20'+escH(_0x5d3377['category_name'])+'\x20<span\x20class=\x22cnt\x22>'+_0x45b7a3+'</span></div>';}),document['getElementById']('cat-list')['innerHTML']=_0x738d9a;}function selCat(_0x2bdeb3,_0x3bb566){CURRENT_CAT=_0x2bdeb3,document['querySelectorAll']('.cat-item')['forEach'](_0x56ca84=>_0x56ca84['classList']['remove']('on')),_0x3bb566['classList']['add']('on'),document['getElementById']('inp-search')['value']='',renderChannels(_0x2bdeb3);}function renderChannels(_0x1b63d0,_0x11d49c=''){let _0x5e8fe0=_0x1b63d0==='all'?ALL_STREAMS:ALL_STREAMS['filter'](_0x54ab4f=>_0x54ab4f['category_id']==_0x1b63d0);if(_0x11d49c)_0x5e8fe0=_0x5e8fe0['filter'](_0x369c74=>_0x369c74['name']['toLowerCase']()['includes'](_0x11d49c['toLowerCase']()));if(!_0x5e8fe0['length']){document['getElementById']('content')['innerHTML']='<div\x20class=\x22empty\x22>Sin\x20canales'+(_0x11d49c?'\x20para\x20\x22'+escH(_0x11d49c)+'\x22':'')+'</div>';return;}let _0x1b390c='';_0x1b63d0==='all'&&!_0x11d49c?ALL_CATS['forEach'](_0x49c73a=>{const _0x331934=_0x5e8fe0['filter'](_0x28a4c5=>_0x28a4c5['category_id']==_0x49c73a['category_id']);if(!_0x331934['length'])return;_0x1b390c+='<div\x20class=\x22sec-title\x22>'+escH(_0x49c73a['category_name'])+'<span></span></div>',_0x1b390c+='<div\x20class=\x22ch-grid\x22>'+_0x331934['map'](_0x10358f=>chCard(_0x10358f))['join']('')+'</div>';}):_0x1b390c='<div\x20class=\x22ch-grid\x22>'+_0x5e8fe0['map'](_0x28e180=>chCard(_0x28e180))['join']('')+'</div>',document['getElementById']('content')['innerHTML']=_0x1b390c;}function chCard(_0x5c0c47){const _0x176c3b=CURRENT_STREAM&&CURRENT_STREAM['stream_id']==_0x5c0c47['stream_id'],_0x57c9a5=_0x5c0c47['stream_icon']?'<img\x20class=\x22ch-logo\x22\x20src=\x22'+escH(_0x5c0c47['stream_icon'])+'\x22\x20onerror=\x22this.style.display=\x27none\x27;this.nextElementSibling.style.display=\x27flex\x27\x22\x20alt=\x22\x22>':'',_0x3ff877='<div\x20class=\x22ch-logo-placeholder\x22\x20style=\x22'+(_0x5c0c47['stream_icon']?'display:none':'')+'\x22>📡</div>';return'<div\x20class=\x22ch-card'+(_0x176c3b?'\x20playing':'')+'\x22\x20onclick=\x22reproducir('+_0x5c0c47['stream_id']+',\x27'+escH(_0x5c0c47['name'])+'\x27,\x27'+escH(getCatName(_0x5c0c47['category_id']))+'\x27)\x22\x20title=\x22'+escH(_0x5c0c47['name'])+'\x22>\x0a\x20\x20\x20\x20<div\x20class=\x22ch-live\x22>EN\x20VIVO</div>\x0a\x20\x20\x20\x20'+_0x57c9a5+_0x3ff877+'\x0a\x20\x20\x20\x20<div\x20class=\x22ch-name\x22>'+escH(_0x5c0c47['name'])+'</div>\x0a\x20\x20</div>';}function getCatName(_0x5cb1a9){const _0x384f6b=ALL_CATS['find'](_0x166c3e=>_0x166c3e['category_id']==_0x5cb1a9);return _0x384f6b?_0x384f6b['category_name']:'';}function buscar(_0x327561){renderChannels(CURRENT_CAT,_0x327561);}function reproducir(_0x3a2831,_0x274aa1,_0x4dea2c){CURRENT_STREAM=ALL_STREAMS['find'](_0x2be7ae=>_0x2be7ae['stream_id']==_0x3a2831)||{'stream_id':_0x3a2831,'name':_0x274aa1},document['getElementById']('pl-nombre')['textContent']=_0x274aa1,document['getElementById']('pl-cat')['textContent']=_0x4dea2c,document['getElementById']('player-overlay')['classList']['add']('on'),document['getElementById']('player-err')['style']['display']='none',document['getElementById']('video')['style']['display']='block';const _0x5b177e=SERVER+'/live/'+encodeURIComponent(SESSION['user'])+'/'+encodeURIComponent(SESSION['pass'])+'/'+_0x3a2831+'.m3u8',_0x1ac548=PROXY+'?t='+encodeURIComponent(_0x5b177e),_0x1367c4=document['getElementById']('video');hlsInstance&&(hlsInstance['destroy'](),hlsInstance=null);if(Hls['isSupported']())hlsInstance=new Hls({'enableWorker':![]}),hlsInstance['loadSource'](_0x1ac548),hlsInstance['attachMedia'](_0x1367c4),hlsInstance['on'](Hls['Events']['MANIFEST_PARSED'],()=>_0x1367c4['play']()['catch'](()=>{})),hlsInstance['on'](Hls['Events']['ERROR'],(_0x4ddf08,_0x385dd3)=>{_0x385dd3['fatal']&&(_0x385dd3['details']==='manifestParsingError'||_0x385dd3['details']==='manifestLoadError'?reproducirMpegTs(_0x3a2831,_0x1ac548):mostrarErrPlayer('Error:\x20'+_0x385dd3['type']+'\x20/\x20'+_0x385dd3['details']));});else _0x1367c4['canPlayType']('application/vnd.apple.mpegurl')?(_0x1367c4['src']=_0x1ac548,_0x1367c4['play']()['catch'](()=>reproducirMpegTs(_0x3a2831))):reproducirMpegTs(_0x3a2831);}function reproducirMpegTs(_0x2bdd83,_0x167620){mpegtsInstance&&(mpegtsInstance['destroy'](),mpegtsInstance=null);hlsInstance&&(hlsInstance['destroy'](),hlsInstance=null);const _0xe4b870=SERVER+'/live/'+encodeURIComponent(SESSION['user'])+'/'+encodeURIComponent(SESSION['pass'])+'/'+_0x2bdd83+'.m3u8',_0x13f6b5=_0x167620||PROXY+'?t='+encodeURIComponent(_0xe4b870),_0x383b74=document['getElementById']('video');_0x383b74['style']['display']='block',document['getElementById']('player-err')['style']['display']='none',typeof mpegts!=='undefined'&&mpegts['getFeatureList']()['mseLivePlayback']?(mpegtsInstance=mpegts['createPlayer']({'type':'mse','isLive':!![],'url':_0x13f6b5,'cors':!![],'enableWorker':![]}),mpegtsInstance['attachMediaElement'](_0x383b74),mpegtsInstance['load'](),mpegtsInstance['play']()['catch'](()=>mostrarErrPlayer('No\x20compatible\x20con\x20este\x20navegador')),mpegtsInstance['on'](mpegts['Events']['ERROR'],(_0x3d1245,_0x3e6373)=>mostrarErrPlayer('MPEG-TS:\x20'+_0x3d1245+'\x20/\x20'+(_0x3e6373&&_0x3e6373['code']?_0x3e6373['code']:JSON['stringify'](_0x3e6373))))):mostrarErrPlayer('Formato\x20no\x20compatible\x20con\x20este\x20navegador');}function mostrarErrPlayer(_0x2f4457){document['getElementById']('video')['style']['display']='none';const _0x59254c=document['getElementById']('player-err');if(_0x2f4457)document['getElementById']('err-msg')['textContent']=_0x2f4457;_0x59254c['style']['display']='flex';}function retryChannel(){if(CURRENT_STREAM)reproducir(CURRENT_STREAM['stream_id'],document['getElementById']('pl-nombre')['textContent'],document['getElementById']('pl-cat')['textContent']);}function cerrarPlayer(){document['getElementById']('player-overlay')['classList']['remove']('on');const _0xd3157e=document['getElementById']('video');_0xd3157e['pause'](),_0xd3157e['src']='',hlsInstance&&(hlsInstance['destroy'](),hlsInstance=null),mpegtsInstance&&(mpegtsInstance['destroy'](),mpegtsInstance=null),CURRENT_STREAM=null;}function toggleFS(){const _0x3b0d8b=document['getElementById']('player-overlay');if(!document['fullscreenElement'])_0x3b0d8b['requestFullscreen']()['catch'](()=>{});else document['exitFullscreen']();}document['addEventListener']('keydown',_0x3241fb=>{if(_0x3241fb['key']==='Escape'&&document['getElementById']('player-overlay')['classList']['contains']('on'))cerrarPlayer();});function mostrarApp(){document['getElementById']('pg-login')['style']['display']='none',document['getElementById']('pg-app')['style']['display']='flex',document['getElementById']('lbl-user')['textContent']=SESSION['user'];}function escH(_0x3c9d99){return String(_0x3c9d99??'')['replace'](/&/g,'&amp;')['replace'](/</g,'&lt;')['replace'](/>/g,'&gt;')['replace'](/"/g,'&quot;');}(function(){const _0x334626=localStorage['getItem']('gtv_s');if(_0x334626)try{const {user:_0xd307ab,pass:_0x52badd}=JSON['parse'](_0x334626);document['getElementById']('inp-user')['value']=_0xd307ab,document['getElementById']('inp-pass')['value']=_0x52badd;}catch(_0x553836){}}());
+const SERVER='http://mundo2.pro:80';
+const PROXY='http://67.205.151.35:3000';
+let SESSION={user:'',pass:'',info:null};
+let ALL_CATS=[];
+let ALL_STREAMS=[];
+let CURRENT_CAT='all';
+let CURRENT_STREAM=null;
+let hlsInstance=null;
+let mpegtsInstance=null;
+
+// ── LOGIN ──
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.getElementById('pg-login').style.display!=='none')login();});
+
+async function login(){
+  const user=document.getElementById('inp-user').value.trim();
+  const pass=document.getElementById('inp-pass').value.trim();
+  if(!user||!pass){showLoginErr('Ingresa tu usuario y contraseña');return;}
+
+  const btn=document.getElementById('btn-login');
+  btn.textContent='Conectando...';btn.disabled=true;
+  document.getElementById('login-err').style.display='none';
+  document.getElementById('cors-notice').style.display='none';
+
+  try{
+    const apiUrl=`${SERVER}/player_api.php?username=${encodeURIComponent(user)}&password=${encodeURIComponent(pass)}`;
+    const url=`${PROXY}?t=${encodeURIComponent(apiUrl)}`;
+    const res=await fetch(url,{signal:AbortSignal.timeout(15000)});
+    const data=await res.json();
+
+    if(data.user_info&&(data.user_info.auth==1||data.user_info.auth==='1')){
+      SESSION={user,pass,info:data.user_info};
+      localStorage.setItem('gtv_s',JSON.stringify({user,pass}));
+      mostrarApp();
+      cargarCanales();
+    } else {
+      showLoginErr('Usuario o contraseña incorrectos');
+    }
+  } catch(e){
+    if(e.name==='TypeError'&&e.message.toLowerCase().includes('fetch')){
+      // Likely CORS
+      document.getElementById('cors-notice').style.display='block';
+      showLoginErr('No se pudo conectar — el servidor no permite acceso desde navegador web.');
+    } else if(e.name==='TimeoutError'){
+      showLoginErr('Tiempo de espera agotado. Verifica tu conexión a internet.');
+    } else {
+      showLoginErr('Error de conexión: '+e.message);
+    }
+  }
+  btn.textContent='▶ Entrar';btn.disabled=false;
+}
+
+function showLoginErr(msg){
+  const el=document.getElementById('login-err');
+  el.textContent=msg;el.style.display='block';
+}
+
+function logout(){
+  localStorage.removeItem('gtv_s');
+  SESSION={user:'',pass:'',info:null};
+  ALL_CATS=[];ALL_STREAMS=[];
+  cerrarPlayer();
+  document.getElementById('pg-app').style.display='none';
+  document.getElementById('pg-login').style.display='flex';
+  document.getElementById('inp-pass').value='';
+}
+
+// ── CARGAR CANALES ──
+async function cargarCanales(){
+  try{
+    const p=encodeURIComponent,u=SESSION.user,pw=SESSION.pass;
+    const [resCats,resStreams]=await Promise.all([
+      fetch(`${PROXY}?t=${p(SERVER+'/player_api.php?username='+p(u)+'&password='+p(pw)+'&action=get_live_categories')}`),
+      fetch(`${PROXY}?t=${p(SERVER+'/player_api.php?username='+p(u)+'&password='+p(pw)+'&action=get_live_streams')}`)
+    ]);
+    ALL_CATS=await resCats.json();
+    ALL_STREAMS=await resStreams.json();
+    renderSidebar();
+    renderChannels('all');
+  } catch(e){
+    document.getElementById('content').innerHTML=`<div class="empty">❌ No se pudieron cargar los canales.<br><small style="color:#64748b">${e.message}</small></div>`;
+  }
+}
+
+// ── SIDEBAR ──
+function renderSidebar(){
+  const total=ALL_STREAMS.length;
+  let html=`<div class="cat-item on" onclick="selCat('all',this)">📺 Todos los canales <span class="cnt">${total}</span></div>`;
+  ALL_CATS.forEach(c=>{
+    const cnt=ALL_STREAMS.filter(s=>s.category_id==c.category_id).length;
+    if(!cnt)return;
+    html+=`<div class="cat-item" onclick="selCat('${escH(c.category_id)}',this)">▸ ${escH(c.category_name)} <span class="cnt">${cnt}</span></div>`;
+  });
+  document.getElementById('cat-list').innerHTML=html;
+}
+
+function selCat(id,el){
+  CURRENT_CAT=id;
+  document.querySelectorAll('.cat-item').forEach(x=>x.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('inp-search').value='';
+  renderChannels(id);
+}
+
+// ── GRID DE CANALES ──
+function renderChannels(catId,filter=''){
+  let streams=catId==='all'?ALL_STREAMS:ALL_STREAMS.filter(s=>s.category_id==catId);
+  if(filter)streams=streams.filter(s=>s.name.toLowerCase().includes(filter.toLowerCase()));
+
+  if(!streams.length){
+    document.getElementById('content').innerHTML=`<div class="empty">Sin canales${filter?' para "'+escH(filter)+'"':''}</div>`;
+    return;
+  }
+
+  let html='';
+  if(catId==='all'&&!filter){
+    // agrupar por categoría
+    ALL_CATS.forEach(cat=>{
+      const catStreams=streams.filter(s=>s.category_id==cat.category_id);
+      if(!catStreams.length)return;
+      html+=`<div class="sec-title">${escH(cat.category_name)}<span></span></div>`;
+      html+=`<div class="ch-grid">${catStreams.map(s=>chCard(s)).join('')}</div>`;
+    });
+  } else {
+    html=`<div class="ch-grid">${streams.map(s=>chCard(s)).join('')}</div>`;
+  }
+  document.getElementById('content').innerHTML=html;
+}
+
+function chCard(s){
+  const isPlaying=CURRENT_STREAM&&CURRENT_STREAM.stream_id==s.stream_id;
+  const logo=s.stream_icon
+    ?`<img class="ch-logo" src="${escH(s.stream_icon)}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" alt="">`
+    :'';
+  const fallback=`<div class="ch-logo-placeholder" style="${s.stream_icon?'display:none':''}">📡</div>`;
+  return`<div class="ch-card${isPlaying?' playing':''}" onclick="reproducir(${s.stream_id},'${escH(s.name)}','${escH(getCatName(s.category_id))}')" title="${escH(s.name)}">
+    <div class="ch-live">EN VIVO</div>
+    ${logo}${fallback}
+    <div class="ch-name">${escH(s.name)}</div>
+  </div>`;
+}
+
+function getCatName(catId){
+  const c=ALL_CATS.find(x=>x.category_id==catId);
+  return c?c.category_name:'';
+}
+
+function buscar(val){
+  renderChannels(CURRENT_CAT,val);
+}
+
+// ── PLAYER ──
+function reproducir(streamId,nombre,cat){
+  CURRENT_STREAM=ALL_STREAMS.find(s=>s.stream_id==streamId)||{stream_id:streamId,name:nombre};
+  document.getElementById('pl-nombre').textContent=nombre;
+  document.getElementById('pl-cat').textContent=cat;
+  document.getElementById('player-overlay').classList.add('on');
+  document.getElementById('player-err').style.display='none';
+  document.getElementById('video').style.display='block';
+
+  const streamRaw=`${SERVER}/live/${encodeURIComponent(SESSION.user)}/${encodeURIComponent(SESSION.pass)}/${streamId}.m3u8`;
+  const url=`${PROXY}?t=${encodeURIComponent(streamRaw)}`;
+  const video=document.getElementById('video');
+
+  if(hlsInstance){hlsInstance.destroy();hlsInstance=null;}
+
+  if(Hls.isSupported()){
+    hlsInstance=new Hls({enableWorker:false});
+    hlsInstance.loadSource(url);
+    hlsInstance.attachMedia(video);
+    hlsInstance.on(Hls.Events.MANIFEST_PARSED,()=>video.play().catch(()=>{}));
+    hlsInstance.on(Hls.Events.ERROR,(ev,data)=>{
+      if(data.fatal){
+        if(data.details==='manifestParsingError'||data.details==='manifestLoadError'){
+          reproducirMpegTs(streamId,url);
+        } else {
+          mostrarErrPlayer(`Error: ${data.type} / ${data.details}`);
+        }
+      }
+    });
+  } else if(video.canPlayType('application/vnd.apple.mpegurl')){
+    video.src=url;
+    video.play().catch(()=>reproducirMpegTs(streamId));
+  } else {
+    reproducirMpegTs(streamId);
+  }
+}
+
+function reproducirMpegTs(streamId,overrideUrl){
+  if(mpegtsInstance){mpegtsInstance.destroy();mpegtsInstance=null;}
+  if(hlsInstance){hlsInstance.destroy();hlsInstance=null;}
+  const tsRaw=`${SERVER}/live/${encodeURIComponent(SESSION.user)}/${encodeURIComponent(SESSION.pass)}/${streamId}.m3u8`;
+  const tsUrl=overrideUrl||`${PROXY}?t=${encodeURIComponent(tsRaw)}`;
+  const video=document.getElementById('video');
+  video.style.display='block';
+  document.getElementById('player-err').style.display='none';
+  if(typeof mpegts!=='undefined'&&mpegts.getFeatureList().mseLivePlayback){
+    mpegtsInstance=mpegts.createPlayer({type:'mse',isLive:true,url:tsUrl,cors:true,enableWorker:false});
+    mpegtsInstance.attachMediaElement(video);
+    mpegtsInstance.load();
+    mpegtsInstance.play().catch(()=>mostrarErrPlayer('No compatible con este navegador'));
+    mpegtsInstance.on(mpegts.Events.ERROR,(et,ed)=>mostrarErrPlayer(`MPEG-TS: ${et} / ${ed&&ed.code?ed.code:JSON.stringify(ed)}`));
+  } else {
+    mostrarErrPlayer('Formato no compatible con este navegador');
+  }
+}
+
+function mostrarErrPlayer(msg){
+  document.getElementById('video').style.display='none';
+  const err=document.getElementById('player-err');
+  if(msg)document.getElementById('err-msg').textContent=msg;
+  err.style.display='flex';
+}
+
+function retryChannel(){
+  if(CURRENT_STREAM)reproducir(CURRENT_STREAM.stream_id,document.getElementById('pl-nombre').textContent,document.getElementById('pl-cat').textContent);
+}
+
+function cerrarPlayer(){
+  document.getElementById('player-overlay').classList.remove('on');
+  const video=document.getElementById('video');
+  video.pause();video.src='';
+  if(hlsInstance){hlsInstance.destroy();hlsInstance=null;}
+  if(mpegtsInstance){mpegtsInstance.destroy();mpegtsInstance=null;}
+  CURRENT_STREAM=null;
+}
+
+function toggleFS(){
+  const el=document.getElementById('player-overlay');
+  if(!document.fullscreenElement){el.requestFullscreen().catch(()=>{});}
+  else document.exitFullscreen();
+}
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'&&document.getElementById('player-overlay').classList.contains('on'))cerrarPlayer();
+});
+
+// ── APP ──
+function mostrarApp(){
+  document.getElementById('pg-login').style.display='none';
+  document.getElementById('pg-app').style.display='flex';
+  document.getElementById('lbl-user').textContent=SESSION.user;
+}
+
+function escH(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ── AUTO-LOGIN ──
+(function(){
+  const saved=localStorage.getItem('gtv_s');
+  if(saved){try{const{user,pass}=JSON.parse(saved);document.getElementById('inp-user').value=user;document.getElementById('inp-pass').value=pass;}catch(e){}}
+})();
 </script>
 </body>
 </html>
