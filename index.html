@@ -346,7 +346,7 @@ function reproducir(streamId,nombre,cat){
     hlsInstance.attachMedia(video);
     hlsInstance.on(Hls.Events.MANIFEST_PARSED,()=>video.play().catch(()=>{}));
     hlsInstance.on(Hls.Events.ERROR,(ev,data)=>{
-      if(data.fatal)mostrarErrPlayer();
+      if(data.fatal)mostrarErrPlayer(`Error: ${data.type} / ${data.details} (fatal=${data.fatal})`);
     });
   } else if(video.canPlayType('application/vnd.apple.mpegurl')){
     video.src=url;
