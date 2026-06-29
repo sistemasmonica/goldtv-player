@@ -36,6 +36,11 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
   border-bottom:2px solid var(--gold);border-radius:8px;padding:12px 16px;
   color:#fff;font-size:14px;font-family:inherit;outline:none}
 .field input:focus{border-color:var(--gold)}
+.field-pass{position:relative}
+.field-pass input{padding-right:44px}
+.btn-eye{position:absolute;right:10px;bottom:10px;background:none;border:none;
+  color:var(--muted);cursor:pointer;padding:4px;line-height:0}
+.btn-eye:hover{color:#fff}
 .btn-login{width:100%;background:linear-gradient(135deg,#a50000,var(--red));color:#fff;
   border:none;border-radius:10px;padding:14px;font-size:15px;font-weight:800;
   cursor:pointer;font-family:inherit;margin-top:10px;letter-spacing:2px;
@@ -225,9 +230,12 @@ video{width:100%;flex:1;background:#000;outline:none;min-height:0}
         <label>Usuario</label>
         <input id="inp-user" type="text" placeholder="Tu usuario" autocomplete="username">
       </div>
-      <div class="field">
+      <div class="field field-pass">
         <label>Contraseña</label>
         <input id="inp-pass" type="password" placeholder="Tu contraseña" autocomplete="current-password">
+        <button class="btn-eye" type="button" onclick="togglePass()" id="btn-eye" title="Mostrar/ocultar contraseña">
+          <svg id="eye-ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
       </div>
       <button class="btn-login" id="btn-login" onclick="login()">▶ ACCEDER</button>
       <div class="login-err" id="login-err"></div>
@@ -386,6 +394,15 @@ document.addEventListener('keydown',e=>{
 function gel(id){return document.getElementById(id);}
 function pg(id){return gel('pg-'+id);}
 function esc(s){return(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");}
+function imgP(url){return url?PROXY+'/?t='+pe(url):'';}
+
+const EYE_OPEN='<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+const EYE_SHUT='<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>';
+function togglePass(){
+  const inp=gel('inp-pass');const isPass=inp.type==='password';
+  inp.type=isPass?'text':'password';
+  gel('eye-ico').innerHTML=isPass?EYE_SHUT:EYE_OPEN;
+}
 
 // === NAVEGACION ===
 const PAGES=['login','home','live','vod','series','series-detail'];
@@ -466,7 +483,7 @@ function renderLive(){
   grid.innerHTML=items.map(s=>{
     const isOn=CURRENT_STREAM?.stream_id==s.stream_id&&CURRENT_STREAM?.tipo==='live';
     const logo=s.stream_icon
-      ?`<img class="ch-logo" src="${s.stream_icon}" onerror="this.style.display='none';this.nextSibling.style.display='flex'"><div class="ch-ico-fb" style="display:none">📺</div>`
+      ?`<img class="ch-logo" src="${imgP(s.stream_icon)}" onerror="this.style.display='none';this.nextSibling.style.display='flex'"><div class="ch-ico-fb" style="display:none">📺</div>`
       :`<div class="ch-ico-fb">📺</div>`;
     return`<div class="ch-card${isOn?' playing':''}" onclick="reproducirLive(${s.stream_id},'${esc(s.name)}')">
       <span class="live-tag">EN VIVO</span>${logo}
@@ -491,7 +508,7 @@ function renderVod(){
   if(!items.length){grid.innerHTML=`<div class="empty">${VOD_STREAMS.length?'Sin resultados':'Cargando películas...'}</div>`;return;}
   grid.innerHTML=items.slice(0,300).map(s=>{
     const poster=s.stream_icon
-      ?`<img class="vod-poster" src="${s.stream_icon}" onerror="this.style.display='none';this.nextSibling.style.display='flex'"><div class="vod-poster-fb" style="display:none">🎬</div>`
+      ?`<img class="vod-poster" src="${imgP(s.stream_icon)}" onerror="this.style.display='none';this.nextSibling.style.display='flex'"><div class="vod-poster-fb" style="display:none">🎬</div>`
       :`<div class="vod-poster-fb">🎬</div>`;
     return`<div class="vod-card" onclick="reproducirVod(${s.stream_id},'${esc(s.name)}','${s.container_extension||'mp4'}')">
       ${poster}<div class="vod-name">${s.name}</div>
@@ -515,7 +532,7 @@ function renderSeries(){
   if(!items.length){grid.innerHTML=`<div class="empty">${SER_LIST.length?'Sin resultados':'Cargando series...'}</div>`;return;}
   grid.innerHTML=items.slice(0,300).map(s=>{
     const poster=s.cover
-      ?`<img class="vod-poster" src="${s.cover}" onerror="this.style.display='none';this.nextSibling.style.display='flex'"><div class="vod-poster-fb" style="display:none">🎭</div>`
+      ?`<img class="vod-poster" src="${imgP(s.cover)}" onerror="this.style.display='none';this.nextSibling.style.display='flex'"><div class="vod-poster-fb" style="display:none">🎭</div>`
       :`<div class="vod-poster-fb">🎭</div>`;
     return`<div class="vod-card" onclick="verSerie(${s.series_id},'${esc(s.name)}')">
       ${poster}<div class="vod-name">${s.name}</div>
@@ -538,7 +555,7 @@ async function verSerie(id,nombre){
     const data=await fetch(PROXY+'?t='+pe(apiUrl),{signal:AbortSignal.timeout(20000)}).then(r=>r.json());
     CURRENT_SERIES={id,nombre,data};
     const info=data.info||{};
-    if(info.cover)gel('sd-poster').src=info.cover;
+    if(info.cover)gel('sd-poster').src=imgP(info.cover);
     gel('sd-plot').textContent=info.plot||'';
     const seasons=Object.keys(data.episodes||{}).sort((a,b)=>parseInt(a)-parseInt(b));
     if(!seasons.length){gel('sd-episodes').innerHTML='<div class="empty">Sin episodios disponibles</div>';return;}
