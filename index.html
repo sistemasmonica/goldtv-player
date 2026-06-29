@@ -337,7 +337,7 @@ function reproducir(streamId,nombre,cat){
   document.getElementById('video').style.display='block';
 
   const streamRaw=`${SERVER}/live/${encodeURIComponent(SESSION.user)}/${encodeURIComponent(SESSION.pass)}/${streamId}.m3u8`;
-  const url=`${PROXY}?t=${encodeURIComponent(streamRaw)}`;
+  const url=streamRaw;
   const video=document.getElementById('video');
 
   if(hlsInstance){hlsInstance.destroy();hlsInstance=null;}
@@ -368,7 +368,7 @@ function reproducirMpegTs(streamId,overrideUrl){
   if(mpegtsInstance){mpegtsInstance.destroy();mpegtsInstance=null;}
   if(hlsInstance){hlsInstance.destroy();hlsInstance=null;}
   const tsRaw=`${SERVER}/live/${encodeURIComponent(SESSION.user)}/${encodeURIComponent(SESSION.pass)}/${streamId}.m3u8`;
-  const tsUrl=overrideUrl||`${PROXY}?t=${encodeURIComponent(tsRaw)}`;
+  const tsUrl=overrideUrl||tsRaw;
   const video=document.getElementById('video');
   video.style.display='block';
   document.getElementById('player-err').style.display='none';
