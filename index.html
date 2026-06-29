@@ -181,6 +181,13 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
 .btn-fs{background:rgba(255,255,255,.08);border:none;color:#ccc;border-radius:8px;
   padding:8px 14px;font-size:13px;cursor:pointer;font-family:inherit}
 video{width:100%;flex:1;background:#000;outline:none;min-height:0}
+.player-loading{display:none;position:absolute;inset:0;align-items:center;
+  justify-content:center;background:rgba(0,0,0,.6);z-index:10;flex-direction:column;gap:14px}
+.player-loading.on{display:flex}
+.spinner{width:48px;height:48px;border:4px solid rgba(245,197,24,.2);
+  border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-txt{font-size:13px;color:var(--muted)}
 .player-err{display:none;flex:1;flex-direction:column;align-items:center;
   justify-content:center;gap:14px;text-align:center;padding:30px}
 .player-err .err-ico{font-size:52px}
@@ -346,6 +353,10 @@ video{width:100%;flex:1;background:#000;outline:none;min-height:0}
     <button class="btn-cls" onclick="cerrarPlayer()">← Atrás</button>
     <div class="ch-playing" id="pl-nombre"></div>
     <button class="btn-fs" onclick="toggleFS()">⛶ Pantalla completa</button>
+  </div>
+  <div class="player-loading" id="player-loading">
+    <div class="spinner"></div>
+    <div class="loading-txt">Cargando canal...</div>
   </div>
   <video id="video" playsinline></video>
   <div class="player-err" id="player-err">
@@ -575,14 +586,16 @@ function abrirPlayer(nombre){
   gel('player-overlay').classList.add('on');
   gel('player-err').style.display='none';
   gel('video').style.display='block';
+  gel('player-loading').classList.add('on');
 }
 
 function iniciarVideo(url,streamId){
   if(hlsInst){hlsInst.destroy();hlsInst=null;}
   if(mpegtsInst){mpegtsInst.destroy();mpegtsInst=null;}
   const video=gel('video');
+  video.addEventListener('playing',()=>gel('player-loading').classList.remove('on'),{once:true});
   if(Hls.isSupported()&&url.includes('.m3u8')){
-    hlsInst=new Hls({enableWorker:false,maxBufferLength:30,fragLoadingTimeOut:15000});
+    hlsInst=new Hls({enableWorker:false,maxBufferLength:10,maxBufferSize:20*1000*1000,fragLoadingTimeOut:15000,startLevel:-1});
     hlsInst.loadSource(url);hlsInst.attachMedia(video);
     hlsInst.on(Hls.Events.MANIFEST_PARSED,()=>video.play().catch(()=>{}));
     hlsInst.on(Hls.Events.ERROR,(ev,data)=>{
@@ -612,6 +625,7 @@ function intentarMpegTs(streamId){
 }
 
 function errPlayer(msg){
+  gel('player-loading').classList.remove('on');
   gel('video').style.display='none';
   gel('player-err').style.display='flex';
   if(msg)gel('err-msg').textContent=msg;
@@ -628,6 +642,7 @@ function retryStream(){
 
 function cerrarPlayer(){
   gel('player-overlay').classList.remove('on');
+  gel('player-loading').classList.remove('on');
   const video=gel('video');video.pause();video.src='';
   if(hlsInst){hlsInst.destroy();hlsInst=null;}
   if(mpegtsInst){mpegtsInst.destroy();mpegtsInst=null;}
