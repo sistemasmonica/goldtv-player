@@ -588,17 +588,20 @@ function mostrarTemporada(season,btn){
 function reproducirLive(streamId,nombre){
   CURRENT_STREAM={stream_id:streamId,name:nombre,tipo:'live'};
   abrirPlayer(nombre);
-  iniciarVideo(`${PROXY}/live/${pe(SESSION.user)}/${pe(SESSION.pass)}/${streamId}.m3u8`,streamId);
+  const liveUrl=SERVER+'/live/'+pe(SESSION.user)+'/'+pe(SESSION.pass)+'/'+streamId+'.m3u8';
+  iniciarVideo(PROXY+'/?t='+pe(liveUrl),streamId);
 }
 function reproducirVod(streamId,nombre,ext){
   CURRENT_STREAM={stream_id:streamId,name:nombre,tipo:'vod',ext};
   abrirPlayer(nombre);
-  iniciarVideo(`${PROXY}/movie/${pe(SESSION.user)}/${pe(SESSION.pass)}/${streamId}.${ext||'mp4'}`,null);
+  const vodUrl=SERVER+'/movie/'+pe(SESSION.user)+'/'+pe(SESSION.pass)+'/'+streamId+'.'+(ext||'mp4');
+  iniciarVideo(PROXY+'/?t='+pe(vodUrl),null);
 }
 function reproducirEpisodio(epId,titulo,ext){
   CURRENT_STREAM={stream_id:epId,name:titulo,tipo:'ep',ext};
   abrirPlayer(titulo);
-  iniciarVideo(`${PROXY}/series/${pe(SESSION.user)}/${pe(SESSION.pass)}/${epId}.${ext||'mp4'}`,null);
+  const epUrl=SERVER+'/series/'+pe(SESSION.user)+'/'+pe(SESSION.pass)+'/'+epId+'.'+(ext||'mp4');
+  iniciarVideo(PROXY+'/?t='+pe(epUrl),null);
 }
 
 function abrirPlayer(nombre){
@@ -634,7 +637,8 @@ function iniciarVideo(url,streamId){
 }
 
 function intentarMpegTs(streamId){
-  const url=`${PROXY}/live/${pe(SESSION.user)}/${pe(SESSION.pass)}/${streamId}.m3u8`;
+  const liveUrl2=SERVER+'/live/'+pe(SESSION.user)+'/'+pe(SESSION.pass)+'/'+streamId+'.m3u8';
+  const url=PROXY+'/?t='+pe(liveUrl2);
   const video=gel('video');
   if(typeof mpegts!=='undefined'&&mpegts.getFeatureList().mseLivePlayback){
     if(mpegtsInst){mpegtsInst.destroy();mpegtsInst=null;}
