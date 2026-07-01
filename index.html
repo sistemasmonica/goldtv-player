@@ -617,7 +617,8 @@ function iniciarVideo(url,streamId){
   if(mpegtsInst){mpegtsInst.destroy();mpegtsInst=null;}
   const video=gel('video');
   video.addEventListener('playing',()=>gel('player-loading').classList.remove('on'),{once:true});
-  if(Hls.isSupported()&&url.includes('.m3u8')){
+  const isIOS=/iPhone|iPad|iPod/i.test(navigator.userAgent);
+  if(!isIOS&&Hls.isSupported()&&url.includes('.m3u8')){
     hlsInst=new Hls({enableWorker:false,maxBufferLength:10,maxBufferSize:20*1000*1000,fragLoadingTimeOut:15000,startLevel:-1});
     hlsInst.loadSource(url);hlsInst.attachMedia(video);
     hlsInst.on(Hls.Events.MANIFEST_PARSED,()=>video.play().catch(()=>{}));
@@ -627,12 +628,12 @@ function iniciarVideo(url,streamId){
         else errPlayer('Error de red: '+data.details);
       }
     });
-  }else if(video.canPlayType('application/vnd.apple.mpegurl')||video.canPlayType('video/mp4')){
-    video.src=url;video.play().catch(()=>{});
-    video.onerror=()=>errPlayer('No se pudo reproducir el contenido');
   }else{
-    if(streamId)intentarMpegTs(streamId);
-    else errPlayer('Formato no compatible con este navegador');
+    video.src=url;video.play().catch(()=>{});
+    video.addEventListener('error',()=>{
+      if(streamId)intentarMpegTs(streamId);
+      else errPlayer('No se pudo reproducir el contenido');
+    },{once:true});
   }
 }
 
