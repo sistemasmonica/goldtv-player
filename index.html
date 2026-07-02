@@ -23,6 +23,21 @@
 }
 body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
 
+/* ===== INSTALAR ===== */
+#install-bar{display:none;align-items:center;justify-content:center;gap:12px;
+  background:linear-gradient(135deg,rgba(245,197,24,.15),rgba(124,58,237,.15));
+  border:1px solid rgba(245,197,24,.4);border-radius:12px;padding:14px 20px;
+  margin:16px auto;max-width:700px;width:calc(100% - 32px);cursor:pointer;
+  transition:all .2s}
+#install-bar:hover{background:linear-gradient(135deg,rgba(245,197,24,.25),rgba(124,58,237,.25))}
+#install-bar .ib-ico{font-size:28px;flex-shrink:0}
+#install-bar .ib-txt{flex:1}
+#install-bar .ib-txt b{display:block;color:var(--gold);font-size:14px;font-weight:800}
+#install-bar .ib-txt span{font-size:12px;color:var(--muted)}
+#install-bar .ib-btn{background:var(--gold);color:#000;border:none;border-radius:8px;
+  padding:9px 18px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;
+  flex-shrink:0;white-space:nowrap}
+
 /* ===== LOGIN ===== */
 #pg-login{display:flex;align-items:center;justify-content:center;min-height:100vh;
   background:radial-gradient(ellipse at 50% 0%,rgba(124,58,237,.25),transparent 60%),var(--bg)}
@@ -250,12 +265,23 @@ video{width:100%;flex:1;background:#000;outline:none;min-height:0}
   </div>
 </div>
 
+<!-- BARRA INSTALAR -->
+<div id="install-bar" onclick="instalarApp()">
+  <div class="ib-ico">📲</div>
+  <div class="ib-txt">
+    <b id="install-title">Instalar GOLD TV como aplicación</b>
+    <span id="install-sub">Acceso directo en tu dispositivo, sin abrir el navegador</span>
+  </div>
+  <button class="ib-btn" onclick="instalarApp()">INSTALAR</button>
+</div>
+
 <!-- ==================== HOME ==================== -->
 <div id="pg-home">
   <div class="home-hdr">
     <img src="logo.jpg" alt="GOLD TV">
     <div class="sep"></div>
     <div class="info">Bienvenido, <b id="hdr-user"></b></div>
+    <button id="home-install-btn" style="display:none" onclick="instalarApp()" class="btn-out" style="background:rgba(245,197,24,.15);border-color:rgba(245,197,24,.4);color:var(--gold)">📲 Instalar</button>
     <button class="btn-out" onclick="logout()">Salir</button>
   </div>
   <div class="home-body">
@@ -688,6 +714,44 @@ function toggleFS(){
   const el=gel('player-overlay');
   if(!document.fullscreenElement)el.requestFullscreen().catch(()=>{});
   else document.exitFullscreen();
+}
+
+// === INSTALAR PWA ===
+let deferredInstall=null;
+const isIOS=/iPhone|iPad|iPod/i.test(navigator.userAgent);
+const yaInstalado=window.matchMedia('(display-mode: standalone)').matches||navigator.standalone;
+
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();
+  deferredInstall=e;
+  mostrarInstall();
+});
+window.addEventListener('appinstalled',()=>ocultarInstall());
+
+function mostrarInstall(){
+  gel('install-bar').style.display='flex';
+  const hib=gel('home-install-btn');if(hib)hib.style.display='inline-block';
+}
+function ocultarInstall(){
+  gel('install-bar').style.display='none';
+  const hib=gel('home-install-btn');if(hib)hib.style.display='none';
+}
+async function instalarApp(){
+  if(deferredInstall){
+    deferredInstall.prompt();
+    const{outcome}=await deferredInstall.userChoice;
+    deferredInstall=null;
+    if(outcome==='accepted')ocultarInstall();
+  }else if(isIOS){
+    alert('Para instalar en iPhone:\n1. Toca el botón compartir ↑ (abajo del navegador)\n2. Selecciona "Añadir a pantalla de inicio"\n3. Toca Añadir');
+  }
+}
+
+if(isIOS&&!yaInstalado){
+  gel('install-bar').style.display='flex';
+  gel('install-title').textContent='Instalar en iPhone';
+  gel('install-sub').textContent='Safari → botón compartir ↑ → Añadir a pantalla de inicio';
+  const hib=gel('home-install-btn');if(hib)hib.style.display='inline-block';
 }
 </script>
 </body>
