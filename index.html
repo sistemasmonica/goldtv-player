@@ -727,6 +727,8 @@ window.addEventListener('beforeinstallprompt',e=>{
   e.preventDefault();
   deferredInstall=e;
   mostrarInstall();
+  e.prompt();
+  e.userChoice.then(choice=>{if(choice.outcome==='accepted')ocultarInstall();});
 });
 window.addEventListener('appinstalled',()=>ocultarInstall());
 
