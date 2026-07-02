@@ -746,6 +746,8 @@ async function instalarApp(){
     if(outcome==='accepted')ocultarInstall();
   }else if(isIOS){
     alert('Para instalar en iPhone:\n1. Toca el botón compartir ↑ (abajo del navegador)\n2. Selecciona "Añadir a pantalla de inicio"\n3. Toca Añadir');
+  }else{
+    alert('Para instalar en Chrome:\n1. Haz clic en el menú ⋮ (tres puntos arriba a la derecha)\n2. Busca "Instalar GOLD TV Player"\n   o "Guardar e compartir → Instalar página como aplicación"');
   }
 }
 
@@ -753,8 +755,8 @@ if(!yaInstalado){
   if(isIOS){
     gel('install-title').textContent='Instalar en iPhone';
     gel('install-sub').textContent='Safari → botón compartir ↑ → Añadir a pantalla de inicio';
-    mostrarInstall();
   }
+  mostrarInstall();
 }
 </script>
 </body>
