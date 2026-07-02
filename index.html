@@ -4,6 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GOLD TV Player</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#f5c518">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="GOLD TV">
+<link rel="apple-touch-icon" href="logo.jpg">
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.7/dist/hls.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mpegts.js@1.7.3/dist/mpegts.min.js"></script>
 <style>
@@ -386,6 +392,8 @@ let VOD_CATS=[],VOD_STREAMS=[],VOD_CAT='all';
 let SER_CATS=[],SER_LIST=[],SER_CAT='all';
 let CURRENT_SERIES=null,CURRENT_STREAM=null;
 let hlsInst=null,mpegtsInst=null;
+let LOADED={live:false,vod:false,series:false};
+let LOADING={live:false,vod:false,series:false};
 
 document.addEventListener('keydown',e=>{
   if(e.key==='Enter'&&gel('pg-login').style.display!=='none')login();
@@ -414,9 +422,9 @@ function irA(page){
     const el=pg(id);if(!el)return;
     el.style.display=id===page?'flex':'none';
   });
-  if(page==='live')renderLive();
-  if(page==='vod')renderVod();
-  if(page==='series')renderSeries();
+  if(page==='live'){if(LOADED.live)renderLive();else cargarSeccion('live');}
+  if(page==='vod'){if(LOADED.vod)renderVod();else cargarSeccion('vod');}
+  if(page==='series'){if(LOADED.series)renderSeries();else cargarSeccion('series');}
 }
 
 // === LOGIN ===
@@ -434,7 +442,6 @@ async function login(){
     SESSION={user,pass};
     gel('hdr-user').textContent=user;
     irA('home');
-    cargarTodo();
   }catch(e){
     errLogin(e.message==='Failed to fetch'?'No se pudo conectar. Revisa tu internet':e.message);
   }finally{btn.textContent='▶ ACCEDER';btn.disabled=false;}
@@ -445,29 +452,32 @@ function errLogin(msg){const el=gel('login-err');el.textContent=msg;el.style.dis
 function logout(){
   SESSION={user:'',pass:''};
   LIVE_CATS=[];LIVE_STREAMS=[];VOD_CATS=[];VOD_STREAMS=[];SER_CATS=[];SER_LIST=[];
+  LOADED={live:false,vod:false,series:false};
+  LOADING={live:false,vod:false,series:false};
   irA('login');
 }
 
-// === CARGAR DATOS ===
-async function cargarTodo(){
+// === CARGAR SECCION (lazy) ===
+async function cargarSeccion(tipo){
+  if(LOADING[tipo])return;
+  LOADING[tipo]=true;
   const u=SESSION.user,pw=SESSION.pass;
   const api=action=>PROXY+'?t='+pe(SERVER+'/player_api.php?username='+pe(u)+'&password='+pe(pw)+'&action='+action);
   const get=async url=>{
     try{const r=await fetch(url,{signal:AbortSignal.timeout(30000)});const d=await r.json();return Array.isArray(d)?d:[];}
     catch{return[];}
   };
-  const [lc,ls,vc,vs,sc,sl]=await Promise.all([
-    get(api('get_live_categories')),get(api('get_live_streams')),
-    get(api('get_vod_categories')),get(api('get_vod_streams')),
-    get(api('get_series_categories')),get(api('get_series')),
-  ]);
-  LIVE_CATS=lc;LIVE_STREAMS=ls;
-  VOD_CATS=vc;VOD_STREAMS=vs;
-  SER_CATS=sc;SER_LIST=sl;
-  const cur=PAGES.find(id=>pg(id)&&pg(id).style.display!=='none');
-  if(cur==='live')renderLive();
-  if(cur==='vod')renderVod();
-  if(cur==='series')renderSeries();
+  if(tipo==='live'){
+    const [lc,ls]=await Promise.all([get(api('get_live_categories')),get(api('get_live_streams'))]);
+    LIVE_CATS=lc;LIVE_STREAMS=ls;LOADED.live=true;renderLive();
+  }else if(tipo==='vod'){
+    const [vc,vs]=await Promise.all([get(api('get_vod_categories')),get(api('get_vod_streams'))]);
+    VOD_CATS=vc;VOD_STREAMS=vs;LOADED.vod=true;renderVod();
+  }else if(tipo==='series'){
+    const [sc,sl]=await Promise.all([get(api('get_series_categories')),get(api('get_series'))]);
+    SER_CATS=sc;SER_LIST=sl;LOADED.series=true;renderSeries();
+  }
+  LOADING[tipo]=false;
 }
 
 // === TV EN DIRECTO ===
